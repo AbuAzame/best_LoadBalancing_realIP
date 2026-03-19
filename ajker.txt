@@ -1,0 +1,87 @@
+/interface bridge
+add name=Loopback
+/interface ethernet
+set [ find default-name=ether1 ] name=ether8
+set [ find default-name=ether2 ] name=ether9
+set [ find default-name=ether3 ] name=ether10
+set [ find default-name=ether4 ] name=ether11
+set [ find default-name=ether5 ] name=ether12
+/interface wireless security-profiles
+set [ find default=yes ] supplicant-identity=MikroTik
+/ip hotspot profile
+set [ find default=yes ] html-directory=flash/hotspot
+/ip pool
+add name=dhcp_pool0 ranges=192.168.10.101-192.168.10.254
+add name=dhcp_pool1 ranges=192.168.11.2-192.168.11.254
+/ip dhcp-server
+add address-pool=dhcp_pool0 disabled=no lease-time=6d23h59m name=dhcp1
+add address-pool=dhcp_pool1 disabled=no lease-time=23h59m name=dhcp2
+/port
+set 0 name=serial0
+set 1 name=serial1
+/ppp profile
+set *0 dns-server=8.8.8.8 local-address=192.168.10.1
+/routing bgp instance
+set default as=65540
+/system logging action
+set 1 disk-file-name=log
+/interface bridge port
+add interface=*6
+add interface=*9
+/interface pptp-server server
+set default-profile=default enabled=yes
+/ip address
+add address=192.168.10.1/24 network=192.168.10.0
+add address=192.168.11.1/24 network=192.168.11.0
+add address=172.16.24.2/30 network=172.16.24.0
+add address=172.16.24.6/30 disabled=yes network=172.16.24.4
+add address=103.35.111.89/30 interface=Loopback network=103.35.111.88
+add address=10.10.10.1/30 disabled=yes network=10.10.10.0
+add address=202.40.177.64 interface=Loopback network=202.40.177.64
+add address=202.40.177.65 interface=Loopback network=202.40.177.65
+add address=192.168.10.1/24 network=192.168.10.0
+add address=172.30.1.62/30 network=172.30.1.60
+/ip dhcp-server network
+add address=192.168.10.0/24 dns-server=8.8.8.8,8.8.4.4,1.1.1.1 gateway=192.168.10.1
+add address=192.168.11.0/24 dns-server=8.8.8.8,8.8.4.4,1.1.1.1 gateway=192.168.11.1
+/ip dns
+set servers=8.8.8.8,8.8.4.4
+/ip firewall nat
+add action=masquerade chain=srcnat
+# no interface
+add action=src-nat chain=srcnat out-interface=*3 src-address=192.168.10.0/23 to-addresses=103.35.111.89
+# no interface
+add action=src-nat chain=srcnat out-interface=*4 src-address=192.168.10.0/23 to-addresses=103.35.111.89
+add action=src-nat chain=srcnat src-address=10.10.10.0/30 to-addresses=202.40.177.64
+/ip route
+add check-gateway=ping distance=1 gateway=172.30.1.61
+/ip service
+set ftp disabled=yes
+set ssh disabled=yes
+set api disabled=yes
+set winbox port=8080
+set api-ssl disabled=yes
+/ip smb shares
+set [ find default=yes ] directory=/pub
+/ppp secret
+add local-address=192.168.10.1 name=helpdesk password=helpdesk remote-address=192.168.10.39
+/queue simple
+add disabled=yes max-limit=20M/20M name=Wifi target=*6
+/routing bgp network
+add network=103.35.111.88/30 synchronize=no
+add network=202.40.177.64/32 synchronize=no
+add network=202.40.177.65/32 synchronize=no
+/routing bgp peer
+add name=MJL-Primary remote-address=172.16.24.1 remote-as=23991
+add name=MJL-SEC remote-address=172.16.24.5 remote-as=23991
+/routing filter
+add action=accept chain=prepend_in set-bgp-prepend=3 set-distance=25
+add action=accept chain=prepend_out set-bgp-prepend=3 set-distance=25
+/system clock
+set time-zone-name=Asia/Dhaka
+/system identity
+set name=Amarsangbad
+/system leds
+set 0 leds="" type=interface-speed
+set 1 leds=""
+set 2 leds=""
